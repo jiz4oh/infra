@@ -1,0 +1,27 @@
+---
+- import_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: enable sing-box service
+  systemd:
+    name: sing-box
+    state: started
+    daemon_reload: yes
+    enabled: yes
+
+- name: generate config
+  template:
+    src: "server.json.j2"
+    dest: /etc/sing-box/config.json
+  notify:
+    - restart sing-box
+
+- name: Check service status
+  command: systemctl is-active sing-box
+  ignore_errors: yes
+  register: service_status
+
+- name: Fail the task if the service is not active
+  fail:
+    msg: "sing-box is not active."
+  when: service_status.stdout != "active"

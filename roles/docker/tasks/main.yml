@@ -1,0 +1,10 @@
+- name: Setup docker
+  copy:
+    src: "docker.json"
+    dest: "/etc/docker/daemon.json"
+    force: false
+
+- name: Install docker
+  shell:
+    creates: /bin/docker
+    cmd: curl -fsSL https://get.docker.com | bash

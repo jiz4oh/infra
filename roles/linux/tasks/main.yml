@@ -1,0 +1,59 @@
+---
+- import_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- import_tasks: centos.yml
+  when: ansible_distribution == "CentOS"
+
+- name: Ensure directory exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - ~/.jiz4oh
+    - /etc/ssh/sshd_config.d
+    - /etc/docker
+
+- name: Set sshd
+  template:
+    src: sshd_config.conf.j2
+    dest: /etc/ssh/sshd_config.d/01_jiz4oh.conf
+
+- name: Restart ssh
+  systemd:
+    name: ssh
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+- name: Set hostname
+  shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+
+- name: Enable bbr
+  shell: |
+    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+    sysctl -p
+
+- name: Install package
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+    - curl
+    - zsh
+    - vim
+    - sudo
+
+- name: Set zsh as default shell
+  shell: "chsh -s $(which zsh)"
+
+- name: Checkout dotfiles
+  git:
+    repo: "https://github.com/jiz4oh/dotfiles.git"
+    dest: ~/.jiz4oh/dotfiles
+    force: true
+
+- name: Install dotfiles
+  shell: ~/.jiz4oh/dotfiles/install

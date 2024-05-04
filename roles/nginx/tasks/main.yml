@@ -1,0 +1,84 @@
+---
+- import_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- import_tasks: centos.yml
+  when: ansible_distribution == "CentOS"
+
+- name: Install package
+  package:
+    name: nginx
+    state: present
+
+- name: Copy files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/nginx/{{ item }}"
+  loop:
+    - ssl_params
+
+- name: Generate files
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/nginx/{{ item }}"
+    mode: 0644
+  loop:
+    - nginx.conf
+
+- name: Ensure directory exist
+  file:
+    path: "/etc/nginx/sites-{{ item }}"
+    state: directory
+  loop:
+    - available
+    - enabled
+
+- name: Add virtual host
+  template:
+    src: "{{ domain.template }}.j2"
+    dest: "/etc/nginx/sites-available/{{ domain.host }}"
+    mode: 0644
+  loop_control:
+    # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_loops.html#defining-inner-and-outer-variable-names-with-loop-var
+    loop_var: domain
+  with_items: "{{ domains }}"
+
+- name: Enable virtual host
+  file:
+    src: "/etc/nginx/sites-available/{{ item.host }}"
+    dest: "/etc/nginx/sites-enabled/{{ item.host }}"
+    state: link
+  with_items: "{{ domains }}"
+  notify: restart nginx
+
+- name: Remove default virtual host
+  file:
+    path: "/etc/nginx/{{ item }}"
+    state: absent
+  loop:
+    - sites-enabled/default
+    - conf.d/default.conf
+  notify: restart nginx
+
+- name: Create ACME-challenge common directory
+  file:
+    name: /var/www/_letsencrypt
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: 0755
+    state: directory
+
+- name: Create install directory
+  file:
+    name: "{{ install_directory }}"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    state: directory
+  when: install_directory is defined
+
+- name: Enable service
+  systemd:
+    name: nginx
+    state: started
+    daemon_reload: yes
+    enabled: yes

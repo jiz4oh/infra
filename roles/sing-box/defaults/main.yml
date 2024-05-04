@@ -1,0 +1,7 @@
+---
+box_ver: "1.5.3"
+fake_domain: www.bing.com
+fake_domain_port: 443
+ss_2022_password: "sing-box generate rand --base64 16"
+uuid: "sing-box generate uuid"
+reality_private_key: "sing-box generate reality-keypair"

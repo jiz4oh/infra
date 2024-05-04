@@ -1,0 +1,68 @@
+---
+- name: ensure directory exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/xray
+    - /etc/xray
+    - /var/log/xray
+
+- name: install unzip pcakge
+  package:
+    name: unzip
+    state: present
+
+- name: get xray binary package
+  unarchive:
+    src: "https://github.com/XTLS/Xray-core/releases/download/v{{ xray_ver }}/Xray-linux-{{ xray_arch }}.zip"
+    dest: /opt/xray
+    remote_src: yes
+
+- name: copy logrotate config
+  copy:
+    src: logrotate
+    dest: /etc/logrotate.d/xray
+
+- name: symlink binary files
+  file:
+    src: "/opt/xray/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+  loop:
+    - xray
+
+- name: get uuid
+  command: xray uuid -i {{ xray_password }}
+  register: uuid
+  changed_when: "uuid.rc != 0"
+
+- import_tasks: "{{ proxy_protocol }}.yml"
+
+- name: generate config
+  template:
+    src: "{{ proxy_protocol }}.json.j2"
+    dest: /etc/xray/config.json
+  notify:
+    - restart xray
+
+- name: copy systemd config
+  copy:
+    src: xray.service
+    dest: /etc/systemd/system/xray.service
+
+- name: enable xray service
+  systemd:
+    name: xray
+    state: started
+    daemon_reload: yes
+    enabled: yes
+
+- name: Check xray status
+  command: systemctl is-active xray
+  register: service_status
+
+- name: Fail the task if the service is not active
+  fail:
+    msg: "xray is not active."
+  when: service_status.stdout != "active"

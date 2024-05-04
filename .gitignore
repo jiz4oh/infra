@@ -1,0 +1,6 @@
+vars.yml
+vars.yaml
+/roles/tailscale/files/auth-key
+/.envrc
+/.tool-versions
+inventory.yaml

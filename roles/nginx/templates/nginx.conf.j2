@@ -1,0 +1,57 @@
+{% if ansible_os_family == "Debian" %}
+user www-data;
+{% endif %}
+{% if ansible_distribution == "CentOS" %}
+user root;
+{% endif %}
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    use epoll;
+    worker_connections 1024;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    server_tokens off;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    server_names_hash_bucket_size 64;
+    client_max_body_size 512m;
+
+    # Enable asynchronous file I/O
+    aio threads;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format  '$remote_addr - $remote_user [$time_local] "$request" '
+                '$status $body_bytes_sent "$http_referer" '
+                '"$http_user_agent" "$http_x_forwarded_for" '
+                '$proxy_protocol_addr:$proxy_protocol_port';
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    server {
+      listen 80;
+      listen [::]:80;
+      return 301 https://$server_name$request_uri;
+    }
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}

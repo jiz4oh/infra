@@ -1,0 +1,28 @@
+{
+  "roles/**/tasks/*.yml": {
+    "type": "task"
+  },
+  "roles/**/handlers/*.yml": {
+    "type": "handlers"
+  },
+  "roles/**/defaults/*.yml": {
+    "type": "default"
+  },
+  "roles/**/files/*": {
+    "type": "file"
+  },
+  "roles/**/templates/*": {
+    "type": "template"
+  },
+  "roles/**/vars/*.yml": {
+    "type": "var"
+  },
+  "roles/**/meta/*.yml": {
+    "type": "meta"
+  },
+  "*.yml|*.yaml": {
+    "make": "ansible-playbook",
+    "dispatch": "ansible-playbook %:s/.*/\\=projectionist#path('site.yml')/",
+    "console": "ansible-console"
+  }
+}

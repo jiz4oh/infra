@@ -1,0 +1,13 @@
+- name: Apt update
+  apt:
+    update_cache: true
+
+- name: Install kitty-terminfo
+  apt:
+    name: kitty-terminfo
+    state: present
+
+# - name: Install neovim from deb
+#   apt:
+#     deb: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.deb"
+#   become: yes

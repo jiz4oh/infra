@@ -1,0 +1,21 @@
+---
+- name: copy install script
+  copy:
+    src:  "{{ item }}"
+    dest: "/tmp/{{ item }}"
+    mode: '0755'
+  loop:
+    # - install_sing-box.sh
+    - install_qsyb.sh
+
+# - command: /tmp/install_sing-box.sh {{ box_ver }}
+  # when: ansible_os_family == "Debian"
+
+- command: /tmp/install_qsyb.sh
+  when: ansible_os_family == "Debian"
+
+- name: install sing-box
+  apt:
+    name: sing-box
+    state: latest
+

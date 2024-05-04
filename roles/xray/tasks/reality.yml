@@ -1,0 +1,31 @@
+---
+- name: generate key
+  command: xray x25519 -i {{ xray_key }}
+  register: x25519
+  changed_when: "x25519.rc != 0"
+
+- name: get privateKey
+  shell: 
+    cmd: echo {{ x25519.stdout | quote }} | grep -oP '(?<=Private key:\ ).*'
+  register: private_key
+  changed_when: "private_key.rc != 0"
+
+- name: get publicKey
+  shell:
+    cmd: echo {{ x25519.stdout | quote }} | grep -oP '(?<=Public key:\ ).*'
+  register: public_key
+  changed_when: "public_key.rc != 0"
+
+- name: copy files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/xray/{{ item }}
+    mode: u+x
+  loop:
+    - extract_allowed_domains.sh
+
+- name: get server names
+  command: /etc/xray/extract_allowed_domains.sh without-sni $(xray tls ping {{ fake_domain }}))
+  register: server_names
+
+  

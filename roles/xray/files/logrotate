@@ -1,0 +1,10 @@
+/var/log/xray_*.log {
+  daily
+  size 100M    # only rotate if file is larger than the size
+  missingok
+  rotate 10    # max old log files to keep. Older ones will be deleted
+  compress   # compress to save space
+  delaycompress
+  notifempty
+  copytruncate  # a tech to make app still able to write log to the old file. Otherwise, app may have to reopen log file after rotating
+}

@@ -1,0 +1,77 @@
+---
+- name: Ensure directory exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - ~/.derper
+    - /etc/docker
+    - /etc/tailscale
+
+- name: Copy auth key
+  copy:
+    src: auth-key
+    dest: /etc/tailscale/auth-key
+
+- name: Check if tailscale exists
+  command: "tailscale"
+  ignore_errors: yes
+  register: command_check_result
+
+- name: Install tailscale if not present
+  shell: curl -fsSL https://tailscale.com/install.sh | sh
+  when: command_check_result.rc != 0
+
+- name: Tailscale up
+  shell: tailscale up --reset --auth-key="file:/etc/tailscale/auth-key"
+
+- name: Tailscale set
+  shell: tailscale set --advertise-exit-node --accept-dns=false
+
+- name: install package
+  package:
+    name: python3-docker
+    state: present
+
+- name: Copy docker compose file
+  template:
+    src: "docker-compose.yaml.j2"
+    dest: ~/.derper/docker-compose.yaml
+
+- name: Run derper
+  command: docker compose -f ~/.derper/docker-compose.yaml up -d
+
+- name: Add crontab entry
+  cron:
+    name: "RestartDerperJob"
+    minute: "51"
+    hour: "3"
+    weekday: 3
+    job: "docker compose -f ~/.derper/docker-compose.yaml restart"
+
+# https://docs.ansible.com/ansible/2.9/modules/docker_container_module.html
+# - name: Run Derper by Docker
+#   docker_container:
+#     name: derper
+#     # https://github.com/fredliang44/derper-docker
+#     image: fredliang/derper
+#     env:
+#       DERP_DOMAIN: "{{ domain }}"
+#       DERP_ADDR: ":{{ https_port }}"
+#       DERP_HTTP_PORT: "{{ http_port }}"
+#       DERP_CERT_MODE: "manual"
+#     ports:
+#       - "{{ https_port }}:443"
+#       - "{{ http_port }}:80"
+#       - "{{ stun_port }}:3478/udp"
+#     volumes:
+#       - "/etc/letsencrypt/live/{{ domain }}/fullchain.pem:/app/certs/{{ domain }}.crt"
+#       - "/etc/letsencrypt/live/{{ domain }}/privkey.pem:/app/certs/{{ domain }}.key"
+#       - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+#     state: started
+#     auto_remove: true
+#     comparisons:
+#       image: ignore   # don't restart containers with older versions of the image
+#       env: strict   # we want precisely this environment
+#       ports: strict
+#       volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

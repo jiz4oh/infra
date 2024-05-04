@@ -1,0 +1,4 @@
+---
+http_port: 5080
+https_port: 5443
+stun_port: 3478

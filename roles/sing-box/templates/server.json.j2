@@ -1,0 +1,91 @@
+{
+  "log": {
+    "disabled": false,
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "strategy": "prefer_ipv4"
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-in",
+      "listen": "::",
+      "listen_port": 443,
+      "users": [
+        {
+          "uuid": "{{ uuid }}",
+          "flow": ""
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "{{ fake_domain }}",
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "{{ fake_domain }}",
+            "server_port": {{ fake_domain_port }}
+          },
+          "private_key": "{{ reality_private_key }}",
+          "short_id": [
+            "10f897e26c4b9478"
+          ]
+        }
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": "cross_gfw",
+        "idle_timeout": "15s",
+        "ping_timeout": "15s"
+      }
+    },
+    {
+      "type": "shadowtls",
+      "listen": "::",
+      "listen_port": 4433,
+      "handshake": {
+        "server": "{{ fake_domain }}",
+        "server_port": {{ fake_domain_port }}
+      },
+      "users": [
+        {
+          "name": "RANDOM",
+          "password": "{{ ss_2022_password }}"
+        }
+      ],
+      "version": 3,
+      "detour": "shadowsocks-in",
+      "strict_mode": true
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "shadowsocks-in",
+      "listen": "::",
+      "listen_port": 14433,
+      "method": "2022-blake3-aes-128-gcm",
+      "password": "{{ ss_2022_password }}"
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "geoip": {
+      "download_url": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
+      "download_detour": "direct"
+    },
+    "geosite": {
+      "download_url": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db",
+      "download_detour": "direct"
+    }
+  }
+}

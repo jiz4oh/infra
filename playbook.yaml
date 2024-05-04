@@ -1,0 +1,77 @@
+- name: Setup VPS Servers
+  hosts: all
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars.yaml
+
+  roles:
+    - role: linux
+    - role: docker
+
+- name: Setup Proxy Servers
+  hosts: proxy_servers
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars.yaml
+
+  vars_prompt:
+    - name: email_addr
+      prompt: "Email"
+      default: "me@example.com"
+      private: no
+    - name: password
+      prompt: "Password"
+      default: "password"
+      private: no
+
+  roles:
+    - role: ansible-role-certbot
+      certbot_admin_email: "{{ email_addr }}"
+      certbot_create_if_missing: true
+      certbot_certs:
+        - domains:
+            - "{{ inventory_hostname }}"
+      certbot_create_standalone_stop_services:
+    # - role: xray
+    #   xray_domain: "{{ inventory_hostname }}"
+    #   xray_password: "{{ password }}"
+    #   proxy_protocol: reality
+    #   fake_domain: "derper.{{ inventory_hostname }}"
+    - role: sing-box
+    # - role: nginx
+    #   domains:
+    #     - template: proxy
+    #       host: "derper.{{ inventory_hostname }}"
+    #       fallback_port: "{{ fallback_port }}"
+    #       # upstreams:
+    #       #   tailscale:
+    #       #     from: "http://localhost:5080"
+    #       #     path: "/"
+- name: tailscale
+  hosts: tailscale_relay_servers
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars.yaml
+
+  vars_prompt:
+    - name: email_addr
+      prompt: "Email"
+      default: "me@example.com"
+      private: no
+
+  roles:
+    - role: ansible-role-certbot
+      certbot_admin_email: "{{ email_addr }}"
+      certbot_create_if_missing: true
+      certbot_certs:
+        - domains:
+            - "derper.{{ inventory_hostname }}"
+      certbot_create_standalone_stop_services:
+    - role: tailscale
+      domain: "derper.{{ inventory_hostname }}"

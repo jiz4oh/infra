@@ -1,0 +1,6 @@
+---
+xray_ver: "1.8.4"
+xray_arch: "64"
+xray_key: "xray x25519"
+proxy_protocol: "trojan"
+fake_domain: "www.bing.com"

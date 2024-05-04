@@ -1,0 +1,4 @@
+---
+name: default
+enabled_websocket: True
+fallback_port: 8080

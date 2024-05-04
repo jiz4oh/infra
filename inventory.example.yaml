@@ -1,0 +1,20 @@
+# https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+proxy_servers:
+  hosts:
+    host1:
+      ansible_host: 1.2.3.4
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+tailscale_relay_servers:
+  hosts:
+    host1:
+      ansible_host: 1.2.3.4
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3

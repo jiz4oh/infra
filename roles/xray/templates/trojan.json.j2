@@ -1,0 +1,127 @@
+{
+  "log": {
+    "loglevel": "info",
+    "error": "/var/log/xray_trojan_error.log",
+    "access": "/var/log/xray_trojan_access.log"
+  },
+  "inbounds": [
+    {
+      "port": "443",
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+          "password": "{{ uuid.stdout }}"
+          }
+        ],
+        "fallbacks": [
+          {
+              "dest": "/dev/shm/default.sock",
+              "xver": 1
+          },
+          {
+              "alpn": "h2",
+              "dest": "/dev/shm/h2c.sock",
+              "xver": 1
+          },
+          {
+              "dest": "4141",
+              "xver": 2,
+              "path": "/trojan-ws111"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "certificates": [
+            {
+                "certificateFile": "/etc/letsencrypt/live/{{ xray_domain }}/fullchain.pem",
+                "keyFile": "/etc/letsencrypt/live/{{ xray_domain }}/privkey.pem"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "port": "4142",
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ uuid.stdout }}"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "cross_gfw"
+        }
+      }
+    },
+    {
+      "port": "4141",
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "{{ uuid.stdout }}"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "acceptProxyProtocol": true,
+          "path": "/trojan-ws111"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom"
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules": [
+      {
+        "type": "field",
+        "protocol": [
+          "bittorrent"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "all-in"
+        ],
+        "port": 53,
+        "outboundTag": "dns-out"
+      }
+    ]
+  }
+}
