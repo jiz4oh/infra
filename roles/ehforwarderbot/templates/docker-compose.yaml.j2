@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+  efb:
+    build:
+      context: .
+    image: jiz4oh/efb
+    container_name: efb
+    volumes:
+      - {{ efb_installation_dir }}:/data
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m

@@ -1,0 +1,5 @@
+master_channel: "blueset.telegram"
+slave_channels:
+{% for name in wechat_slaves %}
+- "blueset.wechat#{{ name }}"
+{% endfor %}

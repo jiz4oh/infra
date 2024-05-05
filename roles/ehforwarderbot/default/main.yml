@@ -1,0 +1,5 @@
+efb_installation_dir: /usr/local/ehforwarderbot
+telegram_user_id: TEST
+efb_bot_token: TEST
+wechat_slaves:
+- master

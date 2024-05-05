@@ -1,0 +1,33 @@
+- name: Generate Ehforwaderbot Configuration File
+  template:
+    src: ehforwarderbot.j2
+    dest: "{{ efb_installation_dir }}/profiles/default/config.yaml"
+
+- name: Generate Telegram Configuration File
+  template:
+    src: blueset.telegram.j2
+    dest: "{{ efb_installation_dir }}/profiles/default/blueset.telegram/config.yaml"
+
+- name: Generate Wechat Configuration File
+  copy:
+    src: profiles/default/blueset.wechat/config.yaml
+    dest: "{{ efb_installation_dir }}/profiles/default/blueset.wechat#{{ item }}/config.yaml"
+  loop: "{{ wechat_slaves }}"
+
+- name: Generate Docker Compose File
+  template:
+    src: docker-compose.yaml.j2
+    dest: "{{ efb_installation_dir }}/docker-compose.yaml"
+
+- name: Copy Configuration Files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ efb_installation_dir }}/{{ item }}"
+  loop:
+    - .dockerignore
+    - Dockerfile
+    - docker-compose.yaml
+    - entrypoint.sh
+
+- name: Run Docker
+  command: docker compose -f {{ efb_installation_dir }}/docker-compose.yaml up -d
