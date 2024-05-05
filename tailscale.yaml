@@ -1,0 +1,24 @@
+- name: tailscale
+  hosts: tailscale_relay_servers
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars.yaml
+
+  vars_prompt:
+    - name: email_addr
+      prompt: "Email"
+      default: "me@example.com"
+      private: no
+
+  roles:
+    - role: ansible-role-certbot
+      certbot_admin_email: "{{ email_addr }}"
+      certbot_create_if_missing: true
+      certbot_certs:
+        - domains:
+            - "derper.{{ inventory_hostname }}"
+      certbot_create_standalone_stop_services:
+    - role: tailscale
+      domain: "derper.{{ inventory_hostname }}"

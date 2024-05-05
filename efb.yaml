@@ -1,0 +1,16 @@
+- name: ehforwaderbot
+  hosts: ehforwaderbot_server
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars.yaml
+
+  vars_prompt:
+    - name: email_addr
+      prompt: "Email"
+      default: "me@example.com"
+      private: no
+
+  roles:
+    - role: ehforwarderbot
