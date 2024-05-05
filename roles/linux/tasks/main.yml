@@ -14,18 +14,6 @@
     - /etc/ssh/sshd_config.d
     - /etc/docker
 
-- name: Set sshd
-  template:
-    src: sshd_config.conf.j2
-    dest: /etc/ssh/sshd_config.d/01_jiz4oh.conf
-
-- name: Restart ssh
-  systemd:
-    name: ssh
-    state: restarted
-    enabled: true
-    daemon_reload: true
-
 - name: Set hostname
   hostname:
     name: "{{ inventory_hostname }}"
@@ -58,3 +46,16 @@
 
 - name: Install dotfiles
   shell: ~/.jiz4oh/dotfiles/install
+  ignore_errors: true
+
+- name: Set sshd
+  template:
+    src: sshd_config.conf.j2
+    dest: /etc/ssh/sshd_config.d/01_jiz4oh.conf
+
+- name: Restart ssh
+  systemd:
+    name: ssh
+    state: restarted
+    enabled: true
+    daemon_reload: true
