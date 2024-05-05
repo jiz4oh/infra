@@ -20,6 +20,9 @@
   "roles/**/meta/*.yml": {
     "type": "meta"
   },
+  "roles/**/tests/*.yml": {
+    "type": "test"
+  },
   "*.yml|*.yaml": {
     "make": "ansible-playbook",
     "dispatch": "ansible-playbook %:s/.*/\\=projectionist#path('site.yml')/",
