@@ -26,7 +26,7 @@
   shell: tailscale up --reset --auth-key="file:/etc/tailscale/auth-key"
 
 - name: Tailscale set
-  shell: tailscale set --advertise-exit-node --accept-dns=false
+  shell: tailscale set --advertise-exit-node --accept-dns=false --auto-update
 
 - name: install package
   package:
